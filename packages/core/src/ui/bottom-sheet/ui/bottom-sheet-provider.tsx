@@ -37,9 +37,15 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
   const thresholdPx = useThresholdInPixels(sheetConfig.dragThreshold ?? 80, sheetRef.current);
 
+  const useHistory = sheetConfig.useHistory ?? true;
+
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.y > thresholdPx) {
-      window.history.back();
+      if (useHistory) {
+        window.history.back();
+      } else {
+        close();
+      }
     }
   };
 
@@ -50,9 +56,19 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   const closeAsync = useCallback(() => {
     return new Promise<void>((resolve) => {
       popWaiterRef.current = resolve;
-      window.history.back();
+      if (useHistory) {
+        window.history.back();
+      } else {
+        close();
+        setTimeout(() => {
+          queueMicrotask(() => {
+            resolve();
+            popWaiterRef.current = null;
+          });
+        }, sheetConfig.closeAsyncTimeout);
+      }
     });
-  }, []);
+  }, [useHistory, sheetConfig.closeAsyncTimeout]);
 
   const open = useCallback(
     async (
@@ -86,6 +102,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
         });
       }, sheetConfig.closeAsyncTimeout);
     },
+    useHistory,
   });
 
   const contextValue = {
@@ -149,7 +166,11 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
                 {activeSheet.render({
                   isOpen: true,
                   close: () => {
-                    window.history.back();
+                    if (useHistory) {
+                      window.history.back();
+                    } else {
+                      close();
+                    }
                   },
                   closeAsync,
                 })}
