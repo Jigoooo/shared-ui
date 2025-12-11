@@ -24,6 +24,14 @@ export type BottomSheetConfig = {
    * @default true
    */
   useHistory?: boolean;
+  /**
+   * Custom history back handler. When provided, this will be called instead of window.history.back().
+   * Useful for integrating with React Router or other routing libraries.
+   * @example
+   * // With React Router
+   * onHistoryBack: () => navigate(-1)
+   */
+  onHistoryBack?: () => void;
 };
 
 export interface BottomSheetItem {

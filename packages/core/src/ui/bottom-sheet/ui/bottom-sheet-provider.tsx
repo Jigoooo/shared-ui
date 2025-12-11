@@ -37,12 +37,16 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
   const thresholdPx = useThresholdInPixels(sheetConfig.dragThreshold ?? 80, sheetRef.current);
 
-  const useHistory = sheetConfig.useHistory ?? true;
+  // onHistoryBack이 있으면 외부에서 history를 관리하므로 내부 history 사용 안 함
+  const shouldUseHistory = sheetConfig.onHistoryBack ? false : (sheetConfig.useHistory ?? true);
+  const historyBack = sheetConfig.onHistoryBack ?? (() => window.history.back());
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.y > thresholdPx) {
-      if (useHistory) {
-        window.history.back();
+      if (sheetConfig.onHistoryBack) {
+        historyBack();
+      } else if (shouldUseHistory) {
+        historyBack();
       } else {
         close();
       }
@@ -56,8 +60,10 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   const closeAsync = useCallback(() => {
     return new Promise<void>((resolve) => {
       popWaiterRef.current = resolve;
-      if (useHistory) {
-        window.history.back();
+      if (sheetConfig.onHistoryBack) {
+        historyBack();
+      } else if (shouldUseHistory) {
+        historyBack();
       } else {
         close();
         setTimeout(() => {
@@ -68,7 +74,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
         }, sheetConfig.closeAsyncTimeout);
       }
     });
-  }, [useHistory, sheetConfig.closeAsyncTimeout]);
+  }, [shouldUseHistory, historyBack, sheetConfig.closeAsyncTimeout, sheetConfig.onHistoryBack]);
 
   const open = useCallback(
     async (
@@ -102,7 +108,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
         });
       }, sheetConfig.closeAsyncTimeout);
     },
-    useHistory,
+    useHistory: shouldUseHistory,
   });
 
   const contextValue = {
@@ -166,8 +172,10 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
                 {activeSheet.render({
                   isOpen: true,
                   close: () => {
-                    if (useHistory) {
-                      window.history.back();
+                    if (sheetConfig.onHistoryBack) {
+                      historyBack();
+                    } else if (shouldUseHistory) {
+                      historyBack();
                     } else {
                       close();
                     }
