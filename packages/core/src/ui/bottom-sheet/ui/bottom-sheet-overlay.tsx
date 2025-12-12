@@ -3,7 +3,12 @@ import { motion } from 'framer-motion';
 
 import { bottomSheetOverlayStyle } from '../config/bottom-sheet-style.ts';
 
-export function BottomSheetOverlay({ isClosing }: { isClosing: boolean }) {
+interface BottomSheetOverlayProps {
+  isClosing: boolean;
+  onOverlayClick: () => void;
+}
+
+export function BottomSheetOverlay({ isClosing, onOverlayClick }: BottomSheetOverlayProps) {
   return (
     <motion.div
       role='presentation'
@@ -22,7 +27,7 @@ export function BottomSheetOverlay({ isClosing }: { isClosing: boolean }) {
         }}
         onClick={() => {
           if (!isClosing) {
-            window.history.back();
+            onOverlayClick();
           }
         }}
       />

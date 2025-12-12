@@ -41,15 +41,19 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   const shouldUseHistory = sheetConfig.onHistoryBack ? false : (sheetConfig.useHistory ?? true);
   const historyBack = sheetConfig.onHistoryBack ?? (() => window.history.back());
 
+  const handleClose = () => {
+    if (sheetConfig.onHistoryBack) {
+      historyBack();
+    } else if (shouldUseHistory) {
+      historyBack();
+    } else {
+      close();
+    }
+  };
+
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.y > thresholdPx) {
-      if (sheetConfig.onHistoryBack) {
-        historyBack();
-      } else if (shouldUseHistory) {
-        historyBack();
-      } else {
-        close();
-      }
+      handleClose();
     }
   };
 
@@ -124,7 +128,9 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
       <FloatingPortal>
         <AnimatePresence initial={false}>
-          {!!activeSheet && <BottomSheetOverlay isClosing={!activeSheet} />}
+          {!!activeSheet && (
+            <BottomSheetOverlay isClosing={!activeSheet} onOverlayClick={handleClose} />
+          )}
         </AnimatePresence>
 
         <AnimatePresence initial={false}>
@@ -171,15 +177,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
               <div role='document' style={bottomSheetStyle}>
                 {activeSheet.render({
                   isOpen: true,
-                  close: () => {
-                    if (sheetConfig.onHistoryBack) {
-                      historyBack();
-                    } else if (shouldUseHistory) {
-                      historyBack();
-                    } else {
-                      close();
-                    }
-                  },
+                  close: handleClose,
                   closeAsync,
                 })}
               </div>

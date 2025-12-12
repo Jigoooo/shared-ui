@@ -41,22 +41,26 @@ export function BottomSheet({
 
   const thresholdPx = useThresholdInPixels(dragThreshold, sheetRef.current);
 
+  const handleClose = () => {
+    if (onHistoryBack) {
+      historyBack();
+    } else if (shouldUseHistory) {
+      historyBack();
+    } else {
+      onClose();
+    }
+  };
+
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.y > thresholdPx) {
-      if (onHistoryBack) {
-        historyBack();
-      } else if (shouldUseHistory) {
-        historyBack();
-      } else {
-        onClose();
-      }
+      handleClose();
     }
   };
 
   return (
     <FloatingPortal>
       <AnimatePresence initial={false}>
-        {isOpen && <BottomSheetOverlay isClosing={!isOpen} />}
+        {isOpen && <BottomSheetOverlay isClosing={!isOpen} onOverlayClick={handleClose} />}
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
