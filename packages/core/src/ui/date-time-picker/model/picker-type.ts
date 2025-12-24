@@ -31,7 +31,9 @@ export type DatePickerProps = BaseDatePickerProps & {
   containerStyle?: CSSProperties;
 };
 
-export type MobileDatePickerProps = BaseDatePickerProps;
+export type MobileDatePickerProps = BaseDatePickerProps & {
+  containerStyle?: CSSProperties;
+};
 
 type BasePickerProps = {
   mode: DatePickerMode;

@@ -17,6 +17,7 @@ export function MobileDatePicker({
   minDate,
   maxDate,
   InputComponent,
+  containerStyle,
   inputStyle,
   endDecorator,
 }: MobileDatePickerProps) {
@@ -42,7 +43,7 @@ export function MobileDatePicker({
   };
 
   return (
-    <FlexColumn>
+    <FlexColumn style={containerStyle}>
       {InputComponent ? (
         InputComponent({
           dateString: inputSelectedDateString,
