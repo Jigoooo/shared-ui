@@ -1,6 +1,6 @@
 {
   "name": "@jigoooo/shared-ui",
-  "version": "0.0.242",
+  "version": "0.0.243",
   "type": "module",
   "publishConfig": {
     "access": "public"

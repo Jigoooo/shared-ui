@@ -25,6 +25,7 @@ const initialConfig: BottomSheetConfig = {
 export function BottomSheetProvider({ children }: { children: ReactNode }) {
   const [activeSheet, setActiveSheet] = useState<BottomSheetItem | null>(null);
   const [sheetConfig, setSheetConfig] = useState<BottomSheetConfig>(initialConfig);
+  const [isClosing, setIsClosing] = useState(false);
 
   const sheetRef = useRef<HTMLDivElement>(null);
   const popWaiterRef = useRef<() => void | null>(null);
@@ -42,6 +43,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   const historyBack = sheetConfig.onHistoryBack ?? (() => window.history.back());
 
   const handleClose = () => {
+    setIsClosing(true);
     if (sheetConfig.onHistoryBack) {
       historyBack();
     } else if (shouldUseHistory) {
@@ -62,6 +64,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   };
 
   const closeAsync = useCallback(() => {
+    setIsClosing(true);
     return new Promise<void>((resolve) => {
       popWaiterRef.current = resolve;
       if (sheetConfig.onHistoryBack) {
@@ -90,6 +93,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
         await closeAsync();
       }
 
+      setIsClosing(false);
       setActiveSheet({ id, render });
       setSheetConfig(() => ({ ...initialConfig, ...config }));
     },
@@ -100,6 +104,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
     modalRef: sheetRef,
     isOpen: !!activeSheet,
     onClose: () => {
+      setIsClosing(true);
       close();
 
       setTimeout(() => {
@@ -176,7 +181,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
               <div role='document' style={bottomSheetStyle}>
                 {activeSheet.render({
-                  isOpen: true,
+                  isOpen: !isClosing,
                   close: handleClose,
                   closeAsync,
                 })}
