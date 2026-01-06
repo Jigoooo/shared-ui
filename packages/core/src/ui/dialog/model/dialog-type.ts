@@ -5,8 +5,8 @@ export type DialogConfig = {
   content?: ReactNode;
   confirmText?: string;
   cancelText?: string;
-  onConfirm?: () => void;
-  onCancel?: () => void;
+  onConfirm?: () => void | Promise<void>;
+  onCancel?: () => void | Promise<void>;
   withCancel?: boolean;
   overlayClose?: boolean;
   dialogType?: DialogType;
