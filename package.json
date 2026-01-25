@@ -1,5 +1,5 @@
 {
-  "name": "triphos-shared-ui",
+  "name": "shared-ui",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -28,13 +28,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Jigoooo/triphos-shared-ui.git"
+    "url": "https://github.com/Jigoooo/shared-ui.git"
   },
   "workspaces": [
     "packages/*"
   ],
   "scripts": {
-    "prepare": "husky",
     "test": "pnpm --filter './packages/*' test",
     "dev": "pnpm --filter ./packages/playground dev",
     "dev:lib": "pnpm --filter ./packages/core dev",
@@ -91,15 +90,6 @@
     "pnpm": ">=8.0.0"
   },
   "packageManager": "pnpm@10.18.3",
-  "lint-staged": {
-    "*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md}": [
-      "prettier --write"
-    ]
-  },
   "dependencies": {
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.546.0"
