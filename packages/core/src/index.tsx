@@ -18,7 +18,7 @@ export type { BottomSheetProps, BottomSheetWithInputProps } from './ui/bottom-sh
 export { CloseIconButton } from './ui/icon';
 export type { CloseIconButtonProps } from './ui/icon';
 
-export { DialogType, dialog, AlertDialog } from './ui/dialog';
+export { DialogType, dialog, AlertDialog, useDialogStore } from './ui/dialog';
 export type { DialogConfig, DialogStates, DialogStore } from './ui/dialog';
 
 export { ContextMenuWrapper, ContextMenuItem, ContextMenuDivider } from './ui/context-menu';
