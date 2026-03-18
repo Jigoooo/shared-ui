@@ -76,7 +76,7 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
       close: () => {
         const { _dialogId } = getState();
         if (_dialogId) {
-          modalBottomSheetStackActions.closeItem(_dialogId);
+          window.history.back();
         } else {
           setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
         }
