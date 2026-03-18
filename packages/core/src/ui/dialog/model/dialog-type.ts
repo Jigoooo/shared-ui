@@ -14,6 +14,7 @@ export type DialogConfig = {
 
 export type DialogStates = {
   dialogOpen: boolean;
+  _dialogId: string | null;
   dialogConfig: DialogConfig;
 };
 

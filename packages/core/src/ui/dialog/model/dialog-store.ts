@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 
 import { type DialogStates, type DialogStore, DialogType } from './dialog-type.ts';
+import { modalBottomSheetStackActions } from '@/hooks';
 
 const dialogInitialState: DialogStates = {
   dialogOpen: false,
+  _dialogId: null,
   dialogConfig: {
     title: '',
     content: '',
@@ -22,48 +24,62 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
     ...dialogInitialState,
     actions: {
       open: (dialogConfig) => {
+        const dialogId = `dialog_${Date.now()}_${Math.random()}`;
+        window.history.pushState({ __layer: 'dialog', dialogId }, '');
+        modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
+          setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+        });
         setState((state) => ({
           ...state,
           dialogOpen: true,
+          _dialogId: dialogId,
           dialogConfig: {
             ...dialogInitialState.dialogConfig,
             ...dialogConfig,
             withCancel: dialogConfig.cancelText !== undefined ? true : !!dialogConfig.withCancel,
             onConfirm: () => {
               if (dialogConfig.onConfirm) dialogConfig.onConfirm();
-              // getState().actions.close();
             },
             onCancel: () => {
               if (dialogConfig.onCancel) dialogConfig.onCancel();
-              // getState().actions.close();
             },
           },
         }));
       },
       openAsync: (dialogConfig) =>
         new Promise((resolve) => {
+          const dialogId = `dialog_${Date.now()}_${Math.random()}`;
+          window.history.pushState({ __layer: 'dialog', dialogId }, '');
+          modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
+            setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+            resolve(false);
+          });
           setState((state) => ({
             ...state,
             dialogOpen: true,
+            _dialogId: dialogId,
             dialogConfig: {
               ...dialogInitialState.dialogConfig,
               ...dialogConfig,
               withCancel: dialogConfig.cancelText !== undefined ? true : !!dialogConfig.withCancel,
               onConfirm: () => {
                 if (dialogConfig.onConfirm) dialogConfig.onConfirm();
-                // getState().actions.close();
                 resolve(true);
               },
               onCancel: () => {
                 if (dialogConfig.onCancel) dialogConfig.onCancel();
-                // getState().actions.close();
                 resolve(false);
               },
             },
           }));
         }),
       close: () => {
-        setState(() => ({ ...dialogInitialState.dialogConfig, dialogOpen: false }));
+        const { _dialogId } = getState();
+        if (_dialogId) {
+          modalBottomSheetStackActions.closeItem(_dialogId);
+        } else {
+          setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+        }
       },
       success: (dialogConfig) => {
         getState().actions.open({ ...dialogConfig, dialogType: DialogType.SUCCESS });

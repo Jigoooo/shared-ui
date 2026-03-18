@@ -13,6 +13,7 @@ import {
 } from '../model/modal-type.ts';
 import { useModalController } from '../model/use-modal-controller.ts';
 import { zIndex } from '@/constants';
+import { modalBottomSheetStackActions } from '@/hooks';
 import { FlexRow } from '@/ui/layout';
 
 export function ModalContextProvider({
@@ -54,6 +55,35 @@ export function ModalContextProvider({
     config?: ModalConfig,
   ) => {
     setModalList((prevState) => [...prevState, { id, render, order: prevState.length, config }]);
+
+    // history 상태 등록 후 모달 스택에 push
+    window.history.pushState({ __layer: 'modal', modalId: id }, '');
+    modalBottomSheetStackActions.push(id, 'modal', () => {
+      // popstate에 의해 닫힐 때 실행되는 콜백
+      if (modalList.length > 0) {
+        const top = modalList.find((m) => m.order === modalList.length - 1);
+        if (top) {
+          setClosingModalIds((prev) => new Set(prev).add(top.id));
+
+          setTimeout(() => {
+            setModalList((prev) => prev.filter((item) => item.id !== top.id));
+
+            queueMicrotask(() => {
+              const resolve = popWaitersRef.current.shift();
+              resolve?.();
+            });
+          }, 50);
+
+          setTimeout(() => {
+            setClosingModalIds((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(top.id);
+              return newSet;
+            });
+          }, 1000);
+        }
+      }
+    });
   };
 
   const closeAsync = useCallback(() => {
@@ -76,6 +106,8 @@ export function ModalContextProvider({
 
           setTimeout(() => {
             setModalList((prev) => prev.filter((item) => item.id !== top.id));
+            // 스택에서 해당 모달 제거
+            modalBottomSheetStackActions.closeItem(top.id);
 
             queueMicrotask(() => {
               const resolve = popWaitersRef.current.shift();

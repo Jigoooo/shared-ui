@@ -1,3 +1,4 @@
+import { dialog } from '../model/dialog-store.ts';
 import { type DialogConfig, DialogType } from '../model/dialog-type.ts';
 import { useGetDialogButtonColor } from '../model/use-get-dialog-button-color.ts';
 import { Button } from '@/ui/button';
@@ -25,7 +26,7 @@ export function AlertDialogActions({ dialogConfig }: { dialogConfig: DialogConfi
           }}
           animationBackgroundColor={'#bbbbbb'}
           onClick={() => {
-            window.history.back();
+            dialog.close();
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 dialogConfig?.onCancel?.();
@@ -44,7 +45,7 @@ export function AlertDialogActions({ dialogConfig }: { dialogConfig: DialogConfi
           boxShadow: '0 6px 14px rgba(17, 24, 39, 0.12)',
         }}
         onClick={() => {
-          window.history.back();
+          dialog.close();
           requestAnimationFrame(() => {
             requestAnimationFrame(() => {
               dialogConfig?.onConfirm?.();

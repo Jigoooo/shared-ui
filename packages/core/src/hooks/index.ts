@@ -9,3 +9,9 @@ export { useCanHover } from './style/use-can-hover.ts';
 export { useMeasureRef } from './style/use-measure-ref.ts';
 export { useCompositionRef } from './style/use-composition-ref.ts';
 export { useRootRemPx } from './style/use-root-rem-px.ts';
+export {
+  useModalBottomSheetStackStore,
+  modalBottomSheetStackActions,
+  type ModalStackItem,
+  type StackEntry,
+} from './common/modal-bottom-sheet-stack.ts';

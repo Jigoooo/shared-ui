@@ -13,6 +13,7 @@ import {
 } from '../model/bottom-sheet-type.ts';
 import { useBottomSheetController } from '../model/use-bottom-sheet-controller.ts';
 import { useThresholdInPixels } from '../model/use-threshold-in-pixels.ts';
+import { modalBottomSheetStackActions } from '@/hooks';
 
 const initialConfig: BottomSheetConfig = {
   maxHeight: 'auto',
@@ -96,8 +97,30 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
       setIsClosing(false);
       setActiveSheet({ id, render });
       setSheetConfig(() => ({ ...initialConfig, ...config }));
+
+      // history 상태 등록 후 바텀시트 스택에 push (새 config 기준으로 shouldUseHistory 계산)
+      const newConfig = { ...initialConfig, ...config };
+      const newShouldUseHistory = newConfig.onHistoryBack ? false : (newConfig.useHistory ?? true);
+      if (newShouldUseHistory) {
+        window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+      }
+      modalBottomSheetStackActions.push(id, 'bottomsheet', () => {
+        // popstate에 의해 닫힐 때 실행되는 콜백
+        setIsClosing(true);
+        close();
+
+        setTimeout(() => {
+          queueMicrotask(() => {
+            const resolve = popWaiterRef.current;
+            if (resolve) {
+              resolve();
+              popWaiterRef.current = null;
+            }
+          });
+        }, sheetConfig.closeAsyncTimeout);
+      });
     },
-    [activeSheet, closeAsync],
+    [activeSheet, closeAsync, sheetConfig.closeAsyncTimeout],
   );
 
   useBottomSheetController({
@@ -106,6 +129,10 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
     onClose: () => {
       setIsClosing(true);
       close();
+      // 스택에서 해당 바텀시트 제거
+      if (activeSheet) {
+        modalBottomSheetStackActions.closeItem(activeSheet.id);
+      }
 
       setTimeout(() => {
         queueMicrotask(() => {

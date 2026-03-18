@@ -66,7 +66,7 @@ export function AlertDialog() {
 
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter' && dialogConfig.onConfirm && !ignoreEnterRef.current) {
-        window.history.back();
+        dialog.close();
 
         requestAnimationFrame(() => {
           requestAnimationFrame(() => {
@@ -147,7 +147,7 @@ export function AlertDialog() {
                 }}
                 onClick={() => {
                   if (dialogOpen && dialogConfig.overlayClose) {
-                    window.history.back();
+                    dialog.close();
                   }
                 }}
               />
