@@ -26,12 +26,12 @@ export function AlertDialogActions({ dialogConfig }: { dialogConfig: DialogConfi
           }}
           animationBackgroundColor={'#bbbbbb'}
           onClick={() => {
-            dialog.close();
             requestAnimationFrame(() => {
               requestAnimationFrame(() => {
                 dialogConfig?.onCancel?.();
               });
             });
+            dialog.close();
           }}
         >
           {dialogConfig.cancelText}
@@ -45,12 +45,8 @@ export function AlertDialogActions({ dialogConfig }: { dialogConfig: DialogConfi
           boxShadow: '0 6px 14px rgba(17, 24, 39, 0.12)',
         }}
         onClick={() => {
+          dialogConfig?.onConfirm?.();
           dialog.close();
-          requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-              dialogConfig?.onConfirm?.();
-            });
-          });
         }}
       >
         {dialogConfig.confirmText}
