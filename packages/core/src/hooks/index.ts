@@ -2,7 +2,6 @@ export { useTimer } from './common/use-timer.ts';
 export { useHandleClickOutsideRef } from './common/use-handle-click-outside-ref.ts';
 export { useToggle } from './common/use-toggle.ts';
 export { useLongPress } from './common/use-long-press.ts';
-export { useModalHistory } from './common/use-modal-history.ts';
 export { useDimensions } from './style/use-dimension.ts';
 export { useMediaQueryWidth } from './style/use-media-query-width.ts';
 export { useElementSize } from './style/use-element-size.ts';
