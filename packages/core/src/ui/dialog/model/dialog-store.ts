@@ -27,7 +27,8 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
         const dialogId = `dialog_${Date.now()}_${Math.random()}`;
         window.history.pushState({ __layer: 'dialog', dialogId }, '');
         modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
-          setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+          // popstate에 의해 닫힐 때 실행되는 콜백
+          // UI 상태는 이미 close()에서 정리되므로 여기서는 스택 정리만 수행
         });
         setState((state) => ({
           ...state,
@@ -51,7 +52,8 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
           const dialogId = `dialog_${Date.now()}_${Math.random()}`;
           window.history.pushState({ __layer: 'dialog', dialogId }, '');
           modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
-            setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+            // popstate에 의해 닫힐 때 실행되는 콜백
+            // UI 상태는 이미 close()에서 정리되므로 여기서는 resolve(false)만 수행
             resolve(false);
           });
           setState((state) => ({
@@ -75,10 +77,9 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
         }),
       close: () => {
         const { _dialogId } = getState();
+        setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
         if (_dialogId) {
           window.history.back();
-        } else {
-          setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
         }
       },
       success: (dialogConfig) => {

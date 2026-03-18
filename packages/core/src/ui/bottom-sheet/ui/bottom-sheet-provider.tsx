@@ -106,9 +106,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
       }
       modalBottomSheetStackActions.push(id, 'bottomsheet', () => {
         // popstate에 의해 닫힐 때 실행되는 콜백
-        setIsClosing(true);
-        close();
-
+        // UI 상태는 이미 onClose()에서 정리되므로 여기서는 resolve 콜백만 수행
         setTimeout(() => {
           queueMicrotask(() => {
             const resolve = popWaiterRef.current;
