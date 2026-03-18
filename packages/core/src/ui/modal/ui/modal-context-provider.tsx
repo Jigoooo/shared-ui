@@ -60,11 +60,29 @@ export function ModalContextProvider({
     window.history.pushState({ __layer: 'modal', modalId: id }, '');
     modalBottomSheetStackActions.push(id, 'modal', () => {
       // popstate에 의해 닫힐 때 실행되는 콜백
-      // UI 상태는 이미 onClose()에서 정리되므로 여기서는 resolve 콜백만 수행
-      queueMicrotask(() => {
-        const resolve = popWaitersRef.current.shift();
-        resolve?.();
-      });
+      if (modalList.length > 0) {
+        const top = modalList.find((m) => m.order === modalList.length - 1);
+        if (top) {
+          setClosingModalIds((prev) => new Set(prev).add(top.id));
+
+          setTimeout(() => {
+            setModalList((prev) => prev.filter((item) => item.id !== top.id));
+
+            queueMicrotask(() => {
+              const resolve = popWaitersRef.current.shift();
+              resolve?.();
+            });
+          }, 50);
+
+          setTimeout(() => {
+            setClosingModalIds((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(top.id);
+              return newSet;
+            });
+          }, 1000);
+        }
+      }
     });
   };
 

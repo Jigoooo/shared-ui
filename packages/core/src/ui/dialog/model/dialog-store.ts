@@ -28,7 +28,7 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
         window.history.pushState({ __layer: 'dialog', dialogId }, '');
         modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
           // popstate에 의해 닫힐 때 실행되는 콜백
-          // UI 상태는 이미 close()에서 정리되므로 여기서는 스택 정리만 수행
+          setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
         });
         setState((state) => ({
           ...state,
@@ -53,7 +53,7 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
           window.history.pushState({ __layer: 'dialog', dialogId }, '');
           modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
             // popstate에 의해 닫힐 때 실행되는 콜백
-            // UI 상태는 이미 close()에서 정리되므로 여기서는 resolve(false)만 수행
+            setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
             resolve(false);
           });
           setState((state) => ({
