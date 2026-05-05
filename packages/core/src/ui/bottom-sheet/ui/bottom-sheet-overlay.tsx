@@ -6,9 +6,14 @@ import { bottomSheetOverlayStyle } from '../config/bottom-sheet-style.ts';
 interface BottomSheetOverlayProps {
   isClosing: boolean;
   onOverlayClick: () => void;
+  duration?: number;
 }
 
-export function BottomSheetOverlay({ isClosing, onOverlayClick }: BottomSheetOverlayProps) {
+export function BottomSheetOverlay({
+  isClosing,
+  onOverlayClick,
+  duration = 0.1,
+}: BottomSheetOverlayProps) {
   return (
     <motion.div
       role='presentation'
@@ -16,7 +21,7 @@ export function BottomSheetOverlay({ isClosing, onOverlayClick }: BottomSheetOve
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.1 }}
+      transition={{ duration }}
       style={bottomSheetOverlayStyle}
     >
       <FloatingOverlay

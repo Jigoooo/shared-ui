@@ -19,6 +19,18 @@ export type BottomSheetConfig = {
   grabStyle?: CSSProperties;
   closeAsyncTimeout?: number;
   /**
+   * Sheet open/close animation duration in seconds.
+   * Set close to 0 for near-instant transitions (e.g. tests).
+   * @default 0.54
+   */
+  animationDuration?: number;
+  /**
+   * Overlay fade animation duration in seconds.
+   * Recommended to keep ≤ animationDuration to avoid visual lag.
+   * @default 0.1
+   */
+  overlayDuration?: number;
+  /**
    * Whether to use browser history for back button support.
    * Set to false for nested bottom sheets to avoid history conflicts.
    * @default true

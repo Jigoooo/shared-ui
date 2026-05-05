@@ -19,6 +19,8 @@ export function BottomSheet({
   showGrab = true,
   grabContainerStyle,
   grabStyle,
+  animationDuration = 0.54,
+  overlayDuration = 0.1,
   useHistory = true,
   onHistoryBack,
 }: BottomSheetProps) {
@@ -60,7 +62,13 @@ export function BottomSheet({
   return (
     <FloatingPortal>
       <AnimatePresence initial={false}>
-        {isOpen && <BottomSheetOverlay isClosing={!isOpen} onOverlayClick={handleClose} />}
+        {isOpen && (
+          <BottomSheetOverlay
+            isClosing={!isOpen}
+            onOverlayClick={handleClose}
+            duration={overlayDuration}
+          />
+        )}
       </AnimatePresence>
 
       <AnimatePresence initial={false}>
@@ -75,7 +83,7 @@ export function BottomSheet({
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{
-                duration: 0.54,
+                duration: animationDuration,
                 ease: [0.32, 0.72, 0, 1],
               }}
               drag='y'

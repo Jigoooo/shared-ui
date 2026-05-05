@@ -21,6 +21,8 @@ const initialConfig: BottomSheetConfig = {
   bottomInset: 0,
   showGrab: true,
   closeAsyncTimeout: 350,
+  animationDuration: 0.54,
+  overlayDuration: 0.1,
 };
 
 export function BottomSheetProvider({ children }: { children: ReactNode }) {
@@ -161,7 +163,11 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
       <FloatingPortal>
         <AnimatePresence initial={false}>
           {!!activeSheet && (
-            <BottomSheetOverlay isClosing={!activeSheet} onOverlayClick={handleClose} />
+            <BottomSheetOverlay
+              isClosing={!activeSheet}
+              onOverlayClick={handleClose}
+              duration={sheetConfig.overlayDuration}
+            />
           )}
         </AnimatePresence>
 
@@ -176,7 +182,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{
-                duration: 0.54,
+                duration: sheetConfig.animationDuration,
                 ease: [0.32, 0.72, 0, 1],
               }}
               drag='y'
