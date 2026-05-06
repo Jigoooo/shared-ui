@@ -5,8 +5,10 @@ export type DialogConfig = {
   content?: ReactNode;
   confirmText?: string;
   cancelText?: string;
-  onConfirm?: () => void | Promise<void>;
-  onCancel?: () => void | Promise<void>;
+  // `() => void` 시그니처는 TypeScript의 특수 규칙으로 어떤 반환값도 허용됩니다
+  // (React onClick과 동일 패턴). async 함수, setState 직접 반환 모두 lint 에러 없이 가능.
+  onConfirm?: () => void;
+  onCancel?: () => void;
   withCancel?: boolean;
   overlayClose?: boolean;
   dialogType?: DialogType;
