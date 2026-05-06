@@ -149,9 +149,18 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
     useHistory: shouldUseHistory,
   });
 
+  // 외부에 노출되는 close: dialog와 동일 패턴.
+  // setState로 즉시 시트 닫고 history.back()으로 popstate 트리거 → root popstate 핸들러가 stack pop + resolve 처리.
+  const closeFromContext = useCallback(() => {
+    if (!activeSheet) return;
+    setIsClosing(true);
+    setActiveSheet(null);
+    historyBack();
+  }, [activeSheet, historyBack]);
+
   const contextValue = {
     open,
-    close,
+    close: closeFromContext,
     isOpen: !!activeSheet,
     activeSheetId: activeSheet?.id ?? null,
   };
