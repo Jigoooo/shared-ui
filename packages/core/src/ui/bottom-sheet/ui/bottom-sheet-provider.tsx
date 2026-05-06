@@ -41,14 +41,23 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
   const thresholdPx = useThresholdInPixels(sheetConfig.dragThreshold ?? 80, sheetRef.current);
 
+  // onHistoryBack이 있으면 외부에서 history를 관리하므로 내부 history 사용 안 함
+  const shouldUseHistory = sheetConfig.onHistoryBack ? false : (sheetConfig.useHistory ?? true);
+  const historyBack = sheetConfig.onHistoryBack ?? (() => window.history.back());
+
   // 모든 close 경로의 단일 진입점.
-  // state 즉시 정리 + history.back으로 popstate 트리거 → root 핸들러가 stack pop + popWaiterRef resolve 처리.
+  // - shouldUseHistory: state 정리 + historyBack으로 popstate 트리거 → root 핸들러가 stack pop + popWaiterRef resolve 처리
+  // - !shouldUseHistory: state 정리 + closeItem으로 직접 stack 정리
   const close = useCallback(() => {
     if (!activeSheet) return;
     setIsClosing(true);
     setActiveSheet(null);
-    window.history.back();
-  }, [activeSheet]);
+    if (shouldUseHistory) {
+      historyBack();
+    } else {
+      modalBottomSheetStackActions.closeItem(activeSheet.id);
+    }
+  }, [activeSheet, shouldUseHistory, historyBack]);
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     if (info.offset.y > thresholdPx) {
@@ -78,8 +87,12 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
       setActiveSheet({ id, render });
       setSheetConfig(() => ({ ...initialConfig, ...config }));
 
-      // history 상태 등록 후 바텀시트 스택에 push
-      window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+      // history 상태 등록 후 바텀시트 스택에 push (새 config 기준으로 shouldUseHistory 계산)
+      const newConfig = { ...initialConfig, ...config };
+      const newShouldUseHistory = newConfig.onHistoryBack ? false : (newConfig.useHistory ?? true);
+      if (newShouldUseHistory) {
+        window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+      }
       modalBottomSheetStackActions.push(id, 'bottomsheet', () => {
         // popstate에 의해 닫힐 때 실행되는 콜백
         setIsClosing(true);
@@ -103,6 +116,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
     modalRef: sheetRef,
     isOpen: !!activeSheet,
     onClose: close,
+    useHistory: shouldUseHistory,
   });
 
   const contextValue = {

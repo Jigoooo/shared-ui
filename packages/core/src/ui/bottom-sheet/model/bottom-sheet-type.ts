@@ -30,6 +30,20 @@ export type BottomSheetConfig = {
    * @default 0.1
    */
   overlayDuration?: number;
+  /**
+   * Whether to use browser history for back button support.
+   * Set to false for nested bottom sheets to avoid history conflicts.
+   * @default true
+   */
+  useHistory?: boolean;
+  /**
+   * Custom history back handler. When provided, this will be called instead of window.history.back().
+   * Useful for integrating with React Router or other routing libraries.
+   * @example
+   * // With React Router
+   * onHistoryBack: () => navigate(-1)
+   */
+  onHistoryBack?: () => void;
 };
 
 export interface BottomSheetItem {

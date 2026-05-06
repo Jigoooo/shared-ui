@@ -22,6 +22,8 @@ export function BottomSheet({
   grabStyle,
   animationDuration = 0.54,
   overlayDuration = 0.1,
+  useHistory = true,
+  onHistoryBack,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
@@ -29,10 +31,15 @@ export function BottomSheet({
   const bottomSheetContainerStyle = getBottomSheetContainerStyle({ maxHeight });
   const bottomSheetStyle = getBottomSheetStyle({ bottomInset });
 
+  // onHistoryBack이 있으면 외부에서 history를 관리하므로 내부 history 사용 안 함
+  const shouldUseHistory = onHistoryBack ? false : useHistory;
+  const historyBack = onHistoryBack ?? (() => window.history.back());
+
   useBottomSheetController({
     modalRef: sheetRef,
     isOpen,
     onClose,
+    useHistory: shouldUseHistory,
   });
 
   const thresholdPx = useThresholdInPixels(dragThreshold, sheetRef.current);
@@ -45,7 +52,9 @@ export function BottomSheet({
   useEffect(() => {
     if (!isOpen) return;
     const id = `controlled-bottomsheet_${Date.now()}_${Math.random()}`;
-    window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+    if (shouldUseHistory) {
+      window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+    }
     modalBottomSheetStackActions.push(id, 'controlled-bottomsheet', () => {
       onCloseRef.current();
     });
@@ -54,6 +63,8 @@ export function BottomSheet({
 
       // 외부 isOpen=false 또는 unmount: 우리가 push한 history step이 아직 top이면 같이 정리.
       // history.back으로 발생할 popstate가 root 핸들러를 거쳐 다른 stack entry를 잘못 닫지 않도록 차단.
+      // (shouldUseHistory가 false면 pushState도 안 했으므로 정리할 step도 없음)
+      if (!shouldUseHistory) return;
       const currentState = window.history.state;
       const isOurStepTop =
         currentState?.__layer === 'bottomsheet' && currentState?.bottomsheetId === id;
@@ -65,11 +76,17 @@ export function BottomSheet({
         window.history.back();
       }
     };
-  }, [isOpen]);
+  }, [isOpen, shouldUseHistory]);
 
-  // close 액션은 history.back으로 popstate 트리거 → root 핸들러가 stack pop + onClose 호출.
+  // close 액션:
+  // - shouldUseHistory: historyBack으로 popstate 트리거 → root 핸들러가 stack pop + onClose 호출
+  // - !shouldUseHistory: onClose 직접 호출 (cleanup에서 stack 정리)
   const handleClose = () => {
-    window.history.back();
+    if (shouldUseHistory) {
+      historyBack();
+    } else {
+      onClose();
+    }
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
