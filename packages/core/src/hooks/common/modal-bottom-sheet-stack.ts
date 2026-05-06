@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type ModalStackItem = 'modal' | 'bottomsheet' | 'dialog';
+export type ModalStackItem = 'modal' | 'bottomsheet' | 'controlled-bottomsheet' | 'dialog';
 
 export type StackEntry = {
   id: string;
@@ -16,6 +16,12 @@ type StackActions = {
   push: (id: string, type: ModalStackItem, resolve: () => void) => void;
   pop: () => StackEntry | undefined;
   closeItem: (id: string) => void;
+  /**
+   * Remove an entry without invoking its resolve callback.
+   * Use for controlled component cleanup where the close path
+   * has already been handled (e.g. external isOpen=false).
+   */
+  removeItem: (id: string) => void;
   peek: () => StackEntry | undefined;
   has: (id: string) => boolean;
 };
@@ -56,6 +62,12 @@ export const useModalBottomSheetStackStore = create<ModalBottomSheetStackStore>(
         if (!entry) return;
         // 스택에서 제거 전 resolve 호출
         entry.resolve();
+        setState({ stack: stack.filter((e) => e.id !== id) });
+      },
+
+      removeItem: (id) => {
+        const { stack } = getState();
+        if (!stack.some((e) => e.id === id)) return;
         setState({ stack: stack.filter((e) => e.id !== id) });
       },
 

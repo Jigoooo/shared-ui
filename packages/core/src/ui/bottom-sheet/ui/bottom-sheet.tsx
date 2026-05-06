@@ -1,6 +1,6 @@
 import { FloatingPortal } from '@floating-ui/react';
 import { AnimatePresence, motion, type PanInfo, useDragControls } from 'framer-motion';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { BottomSheetGrab } from './bottom-sheet-grab.tsx';
 import { BottomSheetOverlay } from './bottom-sheet-overlay.tsx';
@@ -8,6 +8,7 @@ import { getBottomSheetContainerStyle, getBottomSheetStyle } from '../config/bot
 import { type BottomSheetProps } from '../model/bottom-sheet-type.ts';
 import { useBottomSheetController } from '../model/use-bottom-sheet-controller.ts';
 import { useThresholdInPixels } from '../model/use-threshold-in-pixels.ts';
+import { modalBottomSheetStackActions } from '@/hooks';
 
 export function BottomSheet({
   isOpen,
@@ -36,8 +37,39 @@ export function BottomSheet({
 
   const thresholdPx = useThresholdInPixels(dragThreshold, sheetRef.current);
 
+  // controlled 컴포넌트도 modal/bottomsheet stack에 등록 — type은 'controlled-bottomsheet'로 구분.
+  // popstate 시 onClose 트리거되도록 push, 외부 isOpen 변경/unmount 시엔 onClose 중복 호출 방지를 위해 removeItem 사용.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const id = `controlled-bottomsheet_${Date.now()}_${Math.random()}`;
+    window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
+    modalBottomSheetStackActions.push(id, 'controlled-bottomsheet', () => {
+      onCloseRef.current();
+    });
+    return () => {
+      modalBottomSheetStackActions.removeItem(id);
+
+      // 외부 isOpen=false 또는 unmount: 우리가 push한 history step이 아직 top이면 같이 정리.
+      // history.back으로 발생할 popstate가 root 핸들러를 거쳐 다른 stack entry를 잘못 닫지 않도록 차단.
+      const currentState = window.history.state;
+      const isOurStepTop =
+        currentState?.__layer === 'bottomsheet' && currentState?.bottomsheetId === id;
+      if (isOurStepTop) {
+        const blocker = (e: PopStateEvent) => {
+          e.stopImmediatePropagation();
+        };
+        window.addEventListener('popstate', blocker, { once: true, capture: true });
+        window.history.back();
+      }
+    };
+  }, [isOpen]);
+
+  // close 액션은 history.back으로 popstate 트리거 → root 핸들러가 stack pop + onClose 호출.
   const handleClose = () => {
-    onClose();
+    window.history.back();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
