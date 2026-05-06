@@ -94,9 +94,11 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
         window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
       }
       modalBottomSheetStackActions.push(id, 'bottomsheet', () => {
-        // popstate에 의해 닫힐 때 실행되는 콜백
+        // popstate(또는 closeItem)에 의해 닫힐 때 실행되는 콜백.
+        // close()를 호출하면 history.back/closeItem이 재진입되어 무한 루프/잘못된 navigation을 일으키므로
+        // 여기서는 state setter만 직접 호출 (history/stack은 이미 정리된 상태에서 들어오는 콜백).
         setIsClosing(true);
-        close();
+        setActiveSheet(null);
 
         setTimeout(() => {
           queueMicrotask(() => {
