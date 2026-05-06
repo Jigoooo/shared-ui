@@ -4,12 +4,10 @@ export function useBottomSheetController({
   modalRef,
   isOpen,
   onClose,
-  useHistory: _useHistory = true,
 }: {
   modalRef: RefObject<HTMLDivElement | null>;
   isOpen: boolean;
   onClose: () => void;
-  useHistory?: boolean;
 }) {
   useEffect(() => {
     if (isOpen) {

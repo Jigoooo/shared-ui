@@ -21,8 +21,6 @@ export function BottomSheet({
   grabStyle,
   animationDuration = 0.54,
   overlayDuration = 0.1,
-  useHistory = true,
-  onHistoryBack,
 }: BottomSheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const dragControls = useDragControls();
@@ -30,27 +28,16 @@ export function BottomSheet({
   const bottomSheetContainerStyle = getBottomSheetContainerStyle({ maxHeight });
   const bottomSheetStyle = getBottomSheetStyle({ bottomInset });
 
-  // onHistoryBack이 있으면 외부에서 history를 관리하므로 내부 history 사용 안 함
-  const shouldUseHistory = onHistoryBack ? false : useHistory;
-  const historyBack = onHistoryBack ?? (() => window.history.back());
-
   useBottomSheetController({
     modalRef: sheetRef,
     isOpen,
     onClose,
-    useHistory: shouldUseHistory,
   });
 
   const thresholdPx = useThresholdInPixels(dragThreshold, sheetRef.current);
 
   const handleClose = () => {
-    if (onHistoryBack) {
-      historyBack();
-    } else if (shouldUseHistory) {
-      historyBack();
-    } else {
-      onClose();
-    }
+    onClose();
   };
 
   const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {

@@ -41,50 +41,28 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
 
   const thresholdPx = useThresholdInPixels(sheetConfig.dragThreshold ?? 80, sheetRef.current);
 
-  // onHistoryBack이 있으면 외부에서 history를 관리하므로 내부 history 사용 안 함
-  const shouldUseHistory = sheetConfig.onHistoryBack ? false : (sheetConfig.useHistory ?? true);
-  const historyBack = sheetConfig.onHistoryBack ?? (() => window.history.back());
-
-  const handleClose = () => {
+  // 모든 close 경로의 단일 진입점.
+  // state 즉시 정리 + history.back으로 popstate 트리거 → root 핸들러가 stack pop + popWaiterRef resolve 처리.
+  const close = useCallback(() => {
+    if (!activeSheet) return;
     setIsClosing(true);
-    if (sheetConfig.onHistoryBack) {
-      historyBack();
-    } else if (shouldUseHistory) {
-      historyBack();
-    } else {
+    setActiveSheet(null);
+    window.history.back();
+  }, [activeSheet]);
+
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > thresholdPx) {
       close();
     }
   };
 
-  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (info.offset.y > thresholdPx) {
-      handleClose();
-    }
-  };
-
-  const close = () => {
-    setActiveSheet(null);
-  };
-
   const closeAsync = useCallback(() => {
-    setIsClosing(true);
+    if (!activeSheet) return Promise.resolve();
     return new Promise<void>((resolve) => {
       popWaiterRef.current = resolve;
-      if (sheetConfig.onHistoryBack) {
-        historyBack();
-      } else if (shouldUseHistory) {
-        historyBack();
-      } else {
-        close();
-        setTimeout(() => {
-          queueMicrotask(() => {
-            resolve();
-            popWaiterRef.current = null;
-          });
-        }, sheetConfig.closeAsyncTimeout);
-      }
+      close();
     });
-  }, [shouldUseHistory, historyBack, sheetConfig.closeAsyncTimeout, sheetConfig.onHistoryBack]);
+  }, [activeSheet, close]);
 
   const open = useCallback(
     async (
@@ -100,12 +78,8 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
       setActiveSheet({ id, render });
       setSheetConfig(() => ({ ...initialConfig, ...config }));
 
-      // history 상태 등록 후 바텀시트 스택에 push (새 config 기준으로 shouldUseHistory 계산)
-      const newConfig = { ...initialConfig, ...config };
-      const newShouldUseHistory = newConfig.onHistoryBack ? false : (newConfig.useHistory ?? true);
-      if (newShouldUseHistory) {
-        window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
-      }
+      // history 상태 등록 후 바텀시트 스택에 push
+      window.history.pushState({ __layer: 'bottomsheet', bottomsheetId: id }, '');
       modalBottomSheetStackActions.push(id, 'bottomsheet', () => {
         // popstate에 의해 닫힐 때 실행되는 콜백
         setIsClosing(true);
@@ -128,39 +102,12 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
   useBottomSheetController({
     modalRef: sheetRef,
     isOpen: !!activeSheet,
-    onClose: () => {
-      setIsClosing(true);
-      close();
-      // 스택에서 해당 바텀시트 제거
-      if (activeSheet) {
-        modalBottomSheetStackActions.closeItem(activeSheet.id);
-      }
-
-      setTimeout(() => {
-        queueMicrotask(() => {
-          const resolve = popWaiterRef.current;
-          if (resolve) {
-            resolve();
-            popWaiterRef.current = null;
-          }
-        });
-      }, sheetConfig.closeAsyncTimeout);
-    },
-    useHistory: shouldUseHistory,
+    onClose: close,
   });
-
-  // 외부에 노출되는 close: dialog와 동일 패턴.
-  // setState로 즉시 시트 닫고 history.back()으로 popstate 트리거 → root popstate 핸들러가 stack pop + resolve 처리.
-  const closeFromContext = useCallback(() => {
-    if (!activeSheet) return;
-    setIsClosing(true);
-    setActiveSheet(null);
-    historyBack();
-  }, [activeSheet, historyBack]);
 
   const contextValue = {
     open,
-    close: closeFromContext,
+    close,
     isOpen: !!activeSheet,
     activeSheetId: activeSheet?.id ?? null,
   };
@@ -174,7 +121,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
           {!!activeSheet && (
             <BottomSheetOverlay
               isClosing={!activeSheet}
-              onOverlayClick={handleClose}
+              onOverlayClick={close}
               duration={sheetConfig.overlayDuration}
             />
           )}
@@ -224,7 +171,7 @@ export function BottomSheetProvider({ children }: { children: ReactNode }) {
               <div role='document' style={bottomSheetStyle}>
                 {activeSheet.render({
                   isOpen: !isClosing,
-                  close: handleClose,
+                  close: close,
                   closeAsync,
                 })}
               </div>
