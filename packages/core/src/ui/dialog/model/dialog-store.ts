@@ -20,15 +20,42 @@ const dialogInitialState: DialogStates = {
 };
 
 export const useDialogStore = create<DialogStore>()((setState, getState) => {
+  // openAsync로 열린 다이얼로그의 미해결 resolve. 제자리 교체 시 false로 정리해 댕글링 방지.
+  let pendingResolve: ((value: boolean) => void) | null = null;
+
+  /**
+   * open/openAsync의 공통 prelude.
+   * 이미 열린 다이얼로그가 있으면 "제자리 교체"를 준비한다.
+   * - 이전 stack 엔트리를 cleanup 콜백 없이 제거 (removeItem → history.back 재진입 방지)
+   * - 이전 openAsync promise를 false로 정리
+   * - 기존 history 슬롯을 재사용하므로 pushState 생략 (depth 증가 없음)
+   * 신규 오픈일 때만 history 슬롯을 새로 push 한다.
+   */
+  const beginOpen = (dialogId: string) => {
+    const { _dialogId } = getState();
+
+    if (_dialogId) {
+      modalBottomSheetStackActions.removeItem(_dialogId);
+      if (pendingResolve) {
+        pendingResolve(false);
+        pendingResolve = null;
+      }
+    } else {
+      window.history.pushState({ __layer: 'dialog', dialogId }, '');
+    }
+  };
+
   return {
     ...dialogInitialState,
     actions: {
       open: (dialogConfig) => {
         const dialogId = `dialog_${Date.now()}_${Math.random()}`;
-        window.history.pushState({ __layer: 'dialog', dialogId }, '');
+        beginOpen(dialogId);
+        pendingResolve = null;
         modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
           // popstate에 의해 닫힐 때 실행되는 콜백
           setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
+          pendingResolve = null;
         });
         setState((state) => ({
           ...state,
@@ -50,11 +77,13 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
       openAsync: (dialogConfig) =>
         new Promise((resolve) => {
           const dialogId = `dialog_${Date.now()}_${Math.random()}`;
-          window.history.pushState({ __layer: 'dialog', dialogId }, '');
+          beginOpen(dialogId);
+          pendingResolve = resolve;
           modalBottomSheetStackActions.push(dialogId, 'dialog', () => {
             // popstate에 의해 닫힐 때 실행되는 콜백
             setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
             resolve(false);
+            pendingResolve = null;
           });
           setState((state) => ({
             ...state,
