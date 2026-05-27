@@ -106,10 +106,11 @@ export const useDialogStore = create<DialogStore>()((setState, getState) => {
         }),
       close: () => {
         const { _dialogId } = getState();
-        setState(() => ({ ...dialogInitialState, dialogOpen: false, _dialogId: null }));
-        if (_dialogId) {
-          window.history.back();
-        }
+        if (!_dialogId) return;
+        // closeByHistory가 stack 제거 + resolve 콜백(상태 닫기 + openAsync false + pendingResolve 정리)을
+        // 동기 실행하고 history.back()까지 처리한다. popstate를 기다리지 않으므로
+        // 직후 open()이 호출돼도 일관된 상태를 보장한다.
+        modalBottomSheetStackActions.closeByHistory(_dialogId);
       },
       success: (dialogConfig) => {
         getState().actions.open({ ...dialogConfig, dialogType: DialogType.SUCCESS });
