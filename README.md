@@ -11,7 +11,7 @@ A React 19 component library and design-system workspace for building typed, the
 - **One typed UI surface:** the public `@jigoooo/shared-ui` package exports reusable components, theme primitives, hooks, and TypeScript declarations.
 - **Interactive component gallery:** Storybook stories provide controls, generated docs, and accessibility inspection for the documented components.
 - **Application-level interaction patterns:** modal, dialog, bottom-sheet, loader, and snackbar state are modeled alongside foundational controls.
-- **Library-focused output:** Vite emits an ES module and a single CSS asset while React and React DOM remain peer dependencies.
+- **Library-focused output:** Vite emits an ES module and bundled `shared-ui.css`; the published package also includes supporting theme CSS files while React and React DOM remain peer dependencies.
 
 The sections below distinguish the published component surface from the smaller set currently documented in Storybook.
 
@@ -107,7 +107,7 @@ The root scripts orchestrate both packages. `packages/core` owns the public API,
 | Accessibility | Storybook a11y addon; preview uses `a11y.test: 'todo'` | Inspectable in Storybook, not a CI-blocking gate |
 | Browser/story tests | Storybook Vitest integration configured with headless Playwright Chromium | Configuration present; no package test script or CI test job is currently wired |
 | Visual regression | Chromatic Storybook integration is loaded | No repository command, project URL, token, or visual-regression workflow is configured |
-| Bundle quality | ES-only output, React externals, declaration generation, image optimization, one CSS asset | Build is available; `size`/`analyze` script names exist but `size-limit` is not installed or configured |
+| Bundle quality | ES-only output, React externals, declaration generation, image optimization, bundled CSS entry | Build is available; `size`/`analyze` script names exist but `size-limit` is not installed or configured |
 | Documentation deployment | `.github/workflows/deploy-storybook.yml` builds and deploys Storybook | Automated on pushes to `main` or `master` |
 
 The workflow badge above intentionally represents only the Storybook deployment workflow. It does not imply that lint, tests, accessibility, visual regression, or bundle budgets run in CI.
